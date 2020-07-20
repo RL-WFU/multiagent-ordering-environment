@@ -6,6 +6,7 @@ Modeled after multiagent-particle-envs (MPE) from OpenAI
 
 import numpy as np
 
+# check for commitment
 
 class Agent:
     # Init method
