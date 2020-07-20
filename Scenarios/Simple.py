@@ -6,7 +6,7 @@ Modeled after multiagent-particle-envs (MPE) from OpenAI
 
 import numpy as np
 
-# check for commitment
+# modified by Frank Liu for Action class and reward function
 
 class Agent:
     # Init method
@@ -16,6 +16,27 @@ class Agent:
 
         sight_options = ['self', 'others', 'all']
         self.sight = sight_options[1]
+        self.action = Action()
+
+class Action:
+    def __init__(self):
+        action_space = ['left','right','stay']
+        self.action = action_space[2]
+
+    def move(self, agent, world):
+        if agent.action == 'left':
+            tmp_agent = world.line[agent.location]
+            world.line[agent.location] = world.line[agent.location - 1]
+            world.line[agent.location - 1] = tmp_agent
+        elif agent.action == 'right':
+            tmp_agent = world.line[agent.location]
+            world.line[agent.location] = world.line[agent.location + 1]
+            world.line[agent.location + 1] = tmp_agent
+
+    def act(self, world):
+        for agent in enumerate(world.agents):
+            agent.action.move(agent,world)
+            world.timestep += 1
 
 
 class World:
@@ -23,12 +44,14 @@ class World:
     def __init__(self):
         self.agents = []
         self.line = []
+        self.timestep = 0
+
 
 
 class Scenario:
     def make_world(self, n_agents=3):
         world = World()
-
+        world.timestep = 0
         world.agents = [Agent() for i in range(n_agents)]
         for i, agent in enumerate(world.agents):
             agent.name = 'Agent {}'.format(i)
@@ -60,7 +83,7 @@ class Scenario:
         return done
 
     def reward(self, agent, world):
-        pass
+        return world.timestep * -1
 
 # Entry point
 if __name__ == "__main__":
