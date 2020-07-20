@@ -34,6 +34,7 @@ class Action:
             world.line[agent.location + 1] = tmp_agent
 
     def act(self, world):
+        # FIXME
         for agent in enumerate(world.agents):
             agent.action.move(agent,world)
             world.timestep += 1
