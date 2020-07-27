@@ -48,7 +48,7 @@ class World:
         # Create array environment for agents to order themselves in
         self.height = 3
         self.width = n_agents
-        self.line = np.empty((self.height, self.width), Agent)
+        self.map = np.empty((self.height, self.width), Agent)
 
         # Global time counter
         self.timestep = -1
@@ -62,7 +62,6 @@ class World:
             agent.sight = 'others'
 
         self.reset_world()
-        return self
 
     # Resets the world (for use after every episode)
     def reset_world(self):
@@ -77,7 +76,7 @@ class World:
             agent.row = 1
 
             # Update world with agents initial location
-            self.line[agent.row, agent.column] = agent
+            self.map[agent.row, agent.column] = agent
 
         self.debug_print_line()
 
@@ -86,7 +85,7 @@ class World:
         filled = True
 
         for i in range(self.num_agents):
-            if not self.line[1, i]:
+            if not self.map[1, i]:
                 print("The line is not filled")
                 filled = False
                 done = False
@@ -96,13 +95,13 @@ class World:
 
         if filled:
             for i in range(self.num_agents - 1):
-                if self.line[1, i].number > self.line[1, i + 1].number:
+                if self.map[1, i].number > self.map[1, i + 1].number:
                     done = False
 
         return done
 
     def debug_print_line(self, show_row=1):
-        line_numbers = [a.number for a in self.line[1,]]
+        line_numbers = [a.number for a in self.map[1,]]
         print("DEBUG: line_numbers:", line_numbers)
 
     # Agent movement mechanic
@@ -120,43 +119,43 @@ class World:
             # If moving agent is not in the left-most column
             if agent.column is not 0:
                 # If space is not occupied
-                if not self.line[original_row, original_column - 1]:
+                if not self.map[original_row, original_column - 1]:
                     # Change agent's location and clear the original location
                     agent.column = agent.column - 1
-                    self.line[original_row, original_column] = None
+                    self.map[original_row, original_column] = None
 
         # Right
         elif agent.action.direction == 2:
             # If moving agent is not in right-most column
             if agent.column is not self.num_agents - 1:
                 # If space is not occupied
-                if not self.line[original_row, original_column + 1]:
+                if not self.map[original_row, original_column + 1]:
                     # Change agent's location and clear the original location
                     agent.column = agent.column + 1
-                    self.line[original_row, original_column] = None
+                    self.map[original_row, original_column] = None
 
         # Up
         elif agent.action.direction == 3:
             # If moving agent is not in top row
             if agent.row is not 0:
                 # If space is not occupied
-                if not self.line[original_row - 1, original_column]:
+                if not self.map[original_row - 1, original_column]:
                     # Change agent's location and clear the original location
                     agent.row = agent.row - 1
-                    self.line[original_row, original_column] = None
+                    self.map[original_row, original_column] = None
 
         # Down
         elif agent.action.direction == 4:
             # If moving agent is not in bottom row
             if agent.row is not 2:
                 # If space is not occupied
-                if not self.line[original_row + 1, original_column]:
+                if not self.map[original_row + 1, original_column]:
                     # Change agent's location and clear the original location
                     agent.row = agent.row + 1
-                    self.line[original_row, original_column] = None
+                    self.map[original_row, original_column] = None
 
         # Update world with agent's new location
-        self.line[agent.row, agent.column] = agent
+        self.map[agent.row, agent.column] = agent
 
     # Step function
     def step(self, agent_actions):
@@ -172,8 +171,6 @@ class World:
             agent.action.direction = agent_actions[i]
             # Move
             self.move(agent)
-            # DEBUG: Print current array
-            print(self.line, "\n")
 
         # Check if the environment is done
         done = self.check_done()
@@ -187,20 +184,37 @@ class World:
         # Return reward and done
         return reward, done
 
-# Entry point
-if __name__ == "__main__":
-    # set parameters
-    num_agents = 2
+    def render(self):
+        # Create a map to print (that won't raise issues with NoneType), initialize every spot with E
+        printed_map = np.full_like(self.map, 'E')
 
+        # Iterate through the map
+        for row in range(self.height):
+            for column in range(self.width):
+                # If an agent is in the map location, print the number instead of E
+                if self.map[row, column]:
+                    printed_map[row, column] = self.map[row, column].number
+
+        # Output the map
+        print(printed_map)
+
+
+def test_harness(n_agents=3):
     # initialize environment
-    env = World(num_agents)
+    env = World(n_agents)
     env.make_world()
 
     # declare policy array
-    policy = np.zeros(num_agents)
+    policy = np.zeros(n_agents)
     # fill policy array with random
-    for i in range(num_agents):
+    for i in range(n_agents):
         policy[i] = np.random.randint(5)
 
-    print(policy)
-    print(env.step(policy))
+    env.render()
+    env.step(policy)
+    env.render()
+
+
+# Entry point
+if __name__ == "__main__":
+    test_harness(5)
