@@ -4,7 +4,7 @@ Modeled after multiagent-particle-envs (MPE) from OpenAI
 
 Initial Action class and reward function written by Frank Liu
 
-Updated 7/26/20 by Ben Raiford
+Updated 7/27/20 by Ben Raiford
 """
 
 import numpy as np
@@ -13,8 +13,11 @@ import numpy as np
 class Agent:
     # Init method
     def __init__(self):
+        # Agent location
         self.column = -1
         self.row = -1
+
+        # Agent number
         self.number = -1
 
         sight_options = ['self', 'others', 'all']
@@ -68,9 +71,12 @@ class World:
         # Reset the time step
         self.timestep = 0
 
+        agent_numbers = np.random.choice(np.arange(self.num_agents)+1, self.num_agents, replace=False)
+
         for i, agent in enumerate(self.agents):
             # Assign each agent a random number
-            agent.number = np.random.randint(1, 100, dtype=int)
+            agent.number = agent_numbers[i]
+            # agent.number = float(agent.number)
             # Set each agent's location to its initial position
             agent.column = i
             agent.row = 1
@@ -78,15 +84,29 @@ class World:
             # Update world with agents initial location
             self.map[agent.row, agent.column] = agent
 
-        self.debug_print_line()
+        return self.map
 
+    def create_observation(self):
+        obs_map = np.zeros_like(self.map)
+        for row in range(self.height):
+            for column in range(self.width):
+                # If an agent is in the map location, print the number instead of E
+                if self.map[row, column]:
+                    obs_map[row, column] = self.map[row, column].number
+                else:
+                    self.map[row, column] = 0
+
+        return obs_map
+
+
+    # Check if the world is done
     def check_done(self):
         done = True
         filled = True
 
         for i in range(self.num_agents):
             if not self.map[1, i]:
-                print("The line is not filled")
+                # print("DEBUG: The line is not filled")
                 filled = False
                 done = False
 
@@ -100,13 +120,9 @@ class World:
 
         return done
 
-    def debug_print_line(self, show_row=1):
-        line_numbers = [a.number for a in self.map[1,]]
-        print("DEBUG: line_numbers:", line_numbers)
-
     # Agent movement mechanic
     def move(self, agent):
-
+        # Keep track of the agent's original position
         original_column = agent.column
         original_row = agent.row
 
@@ -158,12 +174,12 @@ class World:
         self.map[agent.row, agent.column] = agent
 
     # Step function
-    def step(self, agent_actions):
+    def step_global(self, agent_actions):
         # Assert that there is an action for every agent (and no more)
         assert (len(agent_actions) == self.num_agents)
 
-        # Initialize reward
-        reward = 0
+        # Initialize reward for done state
+        reward = 200
 
         # For every agent
         for i, agent in enumerate(self.agents):
@@ -176,13 +192,12 @@ class World:
         done = self.check_done()
 
         # Time step and negative reward
-        # FIXME: make sure this shouldn't happen on the last iteration as well
         if not done:
             self.timestep += 1
             reward = -1
 
         # Return reward and done
-        return reward, done
+        return self.map, reward, done
 
     def render(self):
         # Create a map to print (that won't raise issues with NoneType), initialize every spot with E
@@ -196,7 +211,16 @@ class World:
                     printed_map[row, column] = self.map[row, column].number
 
         # Output the map
-        print(printed_map)
+        print(printed_map, "\n")
+
+def random_policy(length):
+    # declare policy array
+    policy = np.zeros(length)
+    # fill policy array with random
+    for i in range(length):
+        policy[i] = np.random.randint(5)
+
+    return policy
 
 
 def test_harness(n_agents=3):
@@ -204,17 +228,32 @@ def test_harness(n_agents=3):
     env = World(n_agents)
     env.make_world()
 
-    # declare policy array
-    policy = np.zeros(n_agents)
-    # fill policy array with random
-    for i in range(n_agents):
-        policy[i] = np.random.randint(5)
-
+    # Original
     env.render()
-    env.step(policy)
+
+    # Step 1
+    policy1 = random_policy(n_agents)
+    print("Policy 1:", policy1)
+    env.step_global(policy1)
+    env.render()
+
+    # Step 2
+    policy2 = random_policy(n_agents)
+    print("Policy 2:", policy2)
+    env.step_global(policy2)
+    env.render()
+
+    # Step3
+    policy3 = random_policy(n_agents)
+    print("Policy 3:", policy3)
+    env.step_global(policy3)
     env.render()
 
 
 # Entry point
 if __name__ == "__main__":
-    test_harness(5)
+    # test_harness(3)
+    env = World(3)
+    env.make_world()
+    print(env.reset_world())
+    print(env.create_observation())
