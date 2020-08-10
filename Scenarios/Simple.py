@@ -52,6 +52,7 @@ class World:
         self.height = 3
         self.width = n_agents
         self.map = None
+        self.initialized_done = None
 
         # Global time counter
         self.timestep = -1
@@ -73,6 +74,9 @@ class World:
 
         agent_numbers = np.random.choice(np.arange(self.num_agents)+1, self.num_agents, replace=False)
 
+        # Empties world
+        self.map = np.empty((self.height, self.width), Agent)
+
         for i, agent in enumerate(self.agents):
             # Assign each agent a random number
             agent.number = agent_numbers[i]
@@ -81,9 +85,10 @@ class World:
             agent.column = i
             agent.row = 1
 
-            # Empties world with agents initial location
-            self.map = np.empty((self.height, self.width), Agent)
+            # Adds agents to their initial location
             self.map[agent.row, agent.column] = agent
+
+            self.initialized_done = self.check_done()
 
         return self.map
 
