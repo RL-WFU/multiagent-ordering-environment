@@ -65,6 +65,11 @@ def run_environment():
 
     my_agent = DQNAgent((env.height, env.width), 5**env.num_agents)
 
+    # Statistics to graph later
+    rewards_for_save = []
+    epsilons_for_save = []
+    dones_for_save = []
+
     for episode in range(episodes):
         done = False
         # env.reset_world()
@@ -80,6 +85,11 @@ def run_environment():
             new_state, reward, done = env.step_global(action)
             next_state = process_map(new_state, env.height, env.width, simplify_agents=True)
 
+            # DEBUG
+            if total_reward < -300:
+                print("ACTION SELECTED", action_index, action)
+                env.render()
+
             # Add experience and train
             my_agent.update_memory(state, action_index, reward, next_state, done)
             if my_agent.replay.count > my_agent.minimum_buffer:
@@ -89,12 +99,18 @@ def run_environment():
             state = next_state
             total_reward += reward
 
-            if total_reward <= -200:
+            if total_reward <= -1000:
                 break
 
 
-        print("Total reward after episode {} is {} and epsilon is {}. Done = {}. Replay Buffer length: {}"
-              .format(episode, total_reward, my_agent.epsilon, done, my_agent.replay.count))
+        print("Total reward after episode {} is {} and epsilon is {}. Initialized as Done = {}. Done = {}. Replay Buffer length: {}"
+              .format(episode, total_reward, my_agent.epsilon, env.initialized_done, done, my_agent.replay.count))
+
+        rewards_for_save.append(total_reward)
+        epsilons_for_save.append(my_agent.epsilon)
+        dones_for_save.append(done)
+
+
 
 
 

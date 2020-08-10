@@ -9,10 +9,12 @@ class ReplayBuffer:
     Inspired and adapted from Sebastian Theiler's code
     """
 
-    def __init__(self, map_height, map_width, directory_path : str, size=10000, minimum_buffer=200, use_per=False):
+    def __init__(self, map_height, map_width, directory_path: str, batch_size=32, size=10000, minimum_buffer=200,
+                 use_per=False):
         # Replay buffer
         self.size = size
         self.minimum_buffer = minimum_buffer  # FIXME: might not be necessary
+        self.batch_size = batch_size
         self.use_per = use_per
 
         # Input-related
@@ -69,16 +71,15 @@ class ReplayBuffer:
         self.count = max(self.count, self.pointer + 1)  # Acts as a pseudo len() function
         self.pointer = (self.pointer + 1) % self.size  # Starts rewriting when the replay buffer is full
 
-    def sample_experience(self, batch_size=32, priority_scale=0.0):
+    def sample_experience(self, priority_scale=0.0):
         """
         Returns a minibatch from experience
         :param priority_scale:
-        :param batch_size: how large of a minibatch to return (32 is standard)
         :return: a tuple {state, action, reward, next_state} sampled from memory
         """
 
         # Ensure that there are enough observations to get a batch
-        if self.count < batch_size:
+        if self.count < self.batch_size:
             raise ValueError('The batch_size exceeds the number of observations saved.')
 
         # Get sampling probabilities from priority list
@@ -87,10 +88,10 @@ class ReplayBuffer:
             sample_probabilities = scaled_priorities / sum(scaled_priorities)
 
         # Get a list of indices (without replacement)
-        indices = np.random.choice(np.arange(self.count), batch_size, replace=False)
+        indices = np.random.choice(np.arange(self.count), self.batch_size, replace=False)
 
         return self.states[indices], self.actions[indices], self.rewards[indices], \
-            self.next_states[indices], self.dones[indices]
+               self.next_states[indices], self.dones[indices]
 
     def set_priorities(self, indices, errors, offset=0.1):
         """Update priorities for PER

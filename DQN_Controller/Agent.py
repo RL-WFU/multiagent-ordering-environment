@@ -14,7 +14,7 @@ from DQN_Controller.ReplayBuffer import ReplayBuffer
 
 class DQNAgent:
 
-    def __init__(self, states_shape, actions_size, batch_size=32, minimum_buffer=1000, maximum_buffer=100000):
+    def __init__(self, states_shape, actions_size, batch_size=64, minimum_buffer=1000, maximum_buffer=10000):
 
         # Save/Load parameters
         # FIXME: Once implementation is stable, move this to the train.py file for simplicity
@@ -32,7 +32,7 @@ class DQNAgent:
         self.minimum_buffer = minimum_buffer
         self.maximum_buffer = maximum_buffer
         self.use_per = False  # NOT IMPLEMENTED
-        self.replay = ReplayBuffer(self.env_height, self.env_width, self.directory_path, size=maximum_buffer)
+        self.replay = ReplayBuffer(self.env_height, self.env_width, self.directory_path, self.batch_size, size=maximum_buffer)
 
         # Parameters
         self.gamma = 0.95  # Discount Rate
@@ -61,6 +61,7 @@ class DQNAgent:
         model_input = Input(shape=(self.env_height, self.env_width))
         dense1 = Dense(128, activation='relu', kernel_initializer='he_normal')(model_input)
         dense2 = Dense(128, activation='relu', kernel_initializer='he_normal')(dense1)
+        # dense3 = Dense(128, activation='relu', kernel_initializer='he_normal')(dense2)
         dense2 = Flatten()(dense2)
 
         val = Dense(1, activation=None)(dense2)
