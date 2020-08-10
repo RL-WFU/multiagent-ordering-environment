@@ -51,7 +51,7 @@ class World:
         # Create array environment for agents to order themselves in
         self.height = 3
         self.width = n_agents
-        self.map = np.empty((self.height, self.width), Agent)
+        self.map = None
 
         # Global time counter
         self.timestep = -1
@@ -81,7 +81,8 @@ class World:
             agent.column = i
             agent.row = 1
 
-            # Update world with agents initial location
+            # Empties world with agents initial location
+            self.map = np.empty((self.height, self.width), Agent)
             self.map[agent.row, agent.column] = agent
 
         return self.map
@@ -179,7 +180,7 @@ class World:
         assert (len(agent_actions) == self.num_agents)
 
         # Initialize reward for done state
-        reward = 200
+        reward = 0
 
         # For every agent
         for i, agent in enumerate(self.agents):
