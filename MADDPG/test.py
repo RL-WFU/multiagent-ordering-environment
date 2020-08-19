@@ -111,7 +111,9 @@ def train_agent(agent_ddpg, agent_ddpg_target, agent_memory, agent_actor_target_
 
     next_obs_batch = total_next_obs_batch[:, 0, :]
 
+
     next_other_actor1_o = total_next_obs_batch[:, 1, :]
+
 
 
     # 获取下一个情况下另外两个agent的行动
@@ -130,6 +132,7 @@ def train_agent(agent_ddpg, agent_ddpg_target, agent_memory, agent_actor_target_
 
 
     sess.run([agent_actor_target_update, agent_critic_target_update])
+
 
 def load_weights(a1, a1_tar, a2, a2_tar, name1, name2, session):
     a1.load_weights(name1 + "_online", session)
@@ -274,6 +277,8 @@ if __name__ == '__main__':
 
         o_n = process_map(env.reset_world(), env.height, env.width, simplify_agents=True)
 
+        o_n = np.reshape(o_n, [1, 6])
+
         total_ep_reward = 0
 
         # for t in range(num_steps):
@@ -307,6 +312,7 @@ if __name__ == '__main__':
 
             o_n_next = process_map(new_state, env.height, env.width, simplify_agents=True)
 
+            o_n_next = np.reshape(o_n_next, [1, 6])
 
             total_ep_reward += reward
 
@@ -315,6 +321,7 @@ if __name__ == '__main__':
             # o_n_next = env.firelevel
 
             #Add to agents' memories the state, actions, reward, next state, done tuples
+            #print(o_n.shape)
             agent1_memory.add(np.vstack([o_n, o_n]), np.vstack([agent1_action, agent2_action]), reward ,
                               np.vstack([o_n_next, o_n_next]), False)
 
@@ -346,6 +353,8 @@ if __name__ == '__main__':
 
             o_n = o_n_next
             timestep += 1
+            if timestep % 100 == 0:
+                print(timestep)
 
         print("Episode: {}. Global Reward: {}.".format(i+1, total_ep_reward))
         rewards.append(total_ep_reward)
