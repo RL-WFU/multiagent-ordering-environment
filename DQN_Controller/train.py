@@ -86,9 +86,11 @@ def run_environment():
             next_state = process_map(new_state, env.height, env.width, simplify_agents=True)
 
             # DEBUG
+            """
             if total_reward < -300:
                 print("ACTION SELECTED", action_index, action)
                 env.render()
+            """
 
             # Add experience and train
             my_agent.update_memory(state, action_index, reward, next_state, done)
