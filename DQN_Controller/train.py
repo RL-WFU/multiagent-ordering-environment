@@ -58,7 +58,7 @@ def process_actions(num_agents, num_actions):
 def run_environment():
     episodes = 2000
 
-    env = SimpleWorld(2)
+    env = SimpleWorld(3)
     env.make_world()
 
     integers_to_actions = process_actions(env.num_agents, 5)

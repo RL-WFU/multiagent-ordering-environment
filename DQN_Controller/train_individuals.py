@@ -5,7 +5,7 @@ from DQN_Controller.Agent import DQNAgent
 
 def run_individuals():
     episodes = 2000
-    individual_agents = 2
+    individual_agents = 3
 
     env = SimpleWorld(individual_agents)
     env.make_world()
@@ -42,8 +42,10 @@ def run_individuals():
             state = next_state
             total_reward += reward
 
+            """
             if total_reward <= -1000:
                 break
+            """
 
         print("Total reward after episode {} is {}. Initialized as Done = {}. Done = {}."
               .format(episode, total_reward, env.initialized_done, done))

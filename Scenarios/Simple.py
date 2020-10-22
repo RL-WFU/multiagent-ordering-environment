@@ -36,9 +36,8 @@ class Action:
             4: Down
         """
         self.direction = -1
-        # Communication (for potential later implementation)
-        # NOT IMPLEMENTED
-        self.communication = False
+
+        # TODO: Implement communication
 
 
 class World:
@@ -73,6 +72,7 @@ class World:
         self.timestep = 0
 
         agent_numbers = np.random.choice(np.arange(self.num_agents)+1, self.num_agents, replace=False)
+        print("AGENT NUMBERS", agent_numbers)
 
         # Empties world
         self.map = np.empty((self.height, self.width), Agent)
