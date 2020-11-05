@@ -62,7 +62,7 @@ class World:
         self.agents = [Agent() for i in range(self.num_agents)]
         for i, agent in enumerate(self.agents):
             agent.name = 'Agent {}'.format(i)
-            agent.sight = 'others'
+            # agent.sight = 'others'
 
         self.reset_world()
 
@@ -71,7 +71,7 @@ class World:
         # Reset the time step
         self.timestep = 0
 
-        agent_numbers = np.random.choice(np.arange(self.num_agents)+1, self.num_agents, replace=False)
+        agent_numbers = np.random.choice(np.arange(self.num_agents) + 1, self.num_agents, replace=False)
         print("AGENT NUMBERS", agent_numbers)
 
         # Empties world
@@ -92,6 +92,24 @@ class World:
 
         return self.map
 
+    # Use this function to process maps for the DQN
+    def process_map(self, map_height, map_width, simplify_agents=False):
+        if simplify_agents:
+            new_map = np.zeros_like(self.map, dtype=float)
+            for row in range(map_height):
+                for column in range(map_width):
+                    if self.map[row, column]:
+                        new_map[row, column] = self.map[row, column].number
+
+            new_map = new_map.reshape((map_height, map_width, 1))
+            # new_map = new_map.reshape(map_height*map_width, 1)
+            return new_map
+
+        else:
+            orig_map = self.map.reshape((map_height, map_width, 1))
+            return orig_map
+
+    """
     def create_observation(self):
         obs_map = np.zeros_like(self.map)
         for row in range(self.height):
@@ -103,7 +121,7 @@ class World:
                     self.map[row, column] = 0
 
         return obs_map
-
+    """
 
     # Check if the world is done
     def check_done(self):
@@ -179,6 +197,37 @@ class World:
         # Update world with agent's new location
         self.map[agent.row, agent.column] = agent
 
+    # Individual observation
+    def individual_observation(self, which_agent):
+        obs_map = self.process_map(self.map, self.height, self.width, simplify_agents=True)
+        coordinates = [self.agents[which_agent].row, self.agents[which_agent].column]
+
+        return [obs_map, coordinates]
+
+    # Step individual
+    def step_individual(self, which_agent, agent_action):
+        # Assert that there is only one action
+        assert (len(agent_action)) == 1
+
+        # Initialize reward for done state
+        reward = 0
+
+        # Move the agent
+        self.agents[which_agent].action.direction = agent_action
+        self.move(self.agents[which_agent])
+
+        # Check if the environment is done
+        done = self.check_done()
+
+        # Time step and negative reward
+        if not done:
+            self.timestep += 1
+            reward = -1
+
+        observation = self.individual_observation(which_agent)
+
+        return observation, reward, done
+
     # Step function
     def step_global(self, agent_actions):
         # Assert that there is an action for every agent (and no more)
@@ -218,6 +267,7 @@ class World:
 
         # Output the map
         print(printed_map, "\n")
+
 
 def random_policy(length):
     # declare policy array
